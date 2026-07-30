@@ -57,8 +57,8 @@ for (const file of files) {
   if (!next.summary) next.summary = inferSummary(parsed.content);
   if (!next.country) next.country = "Japan";
   if (!next.season) next.season = "unknown";
-  next.date = normalizeDate(next.date);
-  next.visited_date = normalizeDate(next.visited_date);
+  if (next.date) next.date = normalizeDate(next.date);
+  if (next.visited_date) next.visited_date = normalizeDate(next.visited_date);
 
   for (const rule of rules) {
     const haystack = rule.scope === "title" ? titleText : contextText;

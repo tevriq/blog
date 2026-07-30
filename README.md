@@ -43,6 +43,14 @@ npm run validate
 npm run build -- --force
 ```
 
+Or run the complete local preparation flow in one command:
+
+```bash
+npm run publish:local
+```
+
+This command imports publishable Obsidian stories, refreshes tags, validates content, and builds the site. It does not create a Git commit or push changes, so you can review the result before publishing.
+
 Use a different source folder when needed:
 
 ```bash

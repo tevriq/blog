@@ -12,7 +12,8 @@
     "share:cards": "node scripts/generate-share-cards.mjs",
     "sync:x": "node scripts/sync-x-posts.mjs",
     "tag": "node scripts/ai-tagger.mjs",
-    "validate": "node scripts/validate-content.mjs"
+    "validate": "node scripts/validate-content.mjs",
+    "publish:local": "npm run import:obsidian && npm run tag && npm run validate && npm run build -- --force"
   },
   "dependencies": {
     "astro": "^7.0.6",
