@@ -61,7 +61,7 @@ AI selects candidate
       ↓
 human review / article approval
       ↓
-generate web derivatives
+generate web derivative
       ↓
 R2 blog/
       ↓
@@ -132,50 +132,53 @@ new backend/provider
 
 - WebP；
 - 保持合理视觉质量；
-- 移除不需要公开的 EXIF/精确位置元数据；
+- 自动纠正方向后移除不需要公开的 EXIF/精确位置元数据；
 - 不直接把手机/相机的大尺寸原始 JPEG 当作网页图片。
 
 JPEG 不是禁止格式。对个别兼容或视觉需求可以使用经过网页优化的 JPEG，但应作为例外而不是默认。
 
 PNG 主要保留给真正需要无损、透明或图形类场景。
 
-## 7. 尺寸策略：默认只用两档
-
-默认不要求 3 个尺寸。
+## 7. 尺寸策略：默认只保留一个 1280w WebP
 
 第一版标准：
 
-- `640w`
-- `1280w`
+```text
+最大宽度 1280px
+WebP
+```
 
-页面通过 `srcset` / `sizes` 选择。
+具体规则：
 
-选择两档的原因：
+- 原图宽度超过 1280px 时缩小到 1280px；
+- 原图宽度小于 1280px 时不放大；
+- 默认不生成 `640w`；
+- 默认不生成第二、第三个 responsive width；
+- 默认不因为 Retina、高 DPI 或“常见最佳实践”机械增加更多尺寸；
+- 个别明确需要大图展示的内容可以作为例外单独处理，但必须有实际需求。
 
-- 手机避免下载 1280 宽图片；
-- 桌面正文和多数高 DPI 场景有足够清晰度；
-- 衍生文件数量少；
-- 成本和缓存行为更可预测。
+采用单尺寸的原因：
 
-只有明确存在以下需求时才新增第三档，例如：
+- 衍生文件最少；
+- R2 对象数和存储逻辑最简单；
+- 不产生动态转换费用；
+- 缓存 key 稳定；
+- 发布和供应商迁移更容易；
+- 成本高度可预测。
 
-- 大幅摄影展示；
-- 可放大的细节图；
-- hero 图明显超过正文宽度；
-- 实测 1280 不足。
+这意味着手机也可能下载 1280w 文件，因此必须通过 WebP 压缩、正文宽度限制、lazy loading 和“不要一次请求整篇全部图片”来控制实际流量。
 
-不要因为“常见最佳实践是三档”就机械生成第三档。
+如果未来真实监控数据证明移动端流量明显过大，再通过一次正式规范变更增加第二档；不要预先为假设问题增加复杂度。
 
 ## 8. Cloudflare Images 策略
 
-默认优先采用“发布时预生成静态衍生文件”，而不是依赖动态 Cloudflare Images transformations。
+默认采用“发布时预生成静态衍生文件”，不依赖动态 Cloudflare Images transformations。
 
 即：
 
 ```text
 original
   ↓ publish-time processing
-640.webp
 1280.webp
   ↓
 R2 blog/
@@ -185,7 +188,7 @@ Cloudflare cache / public delivery
 
 好处：
 
-- transformation 成本趋近于 0；
+- transformation 成本默认是 0；
 - 不受动态尺寸参数数量影响；
 - 费用更可预测；
 - 将来更换图片处理服务更容易；
@@ -195,10 +198,10 @@ Cloudflare Images 可作为未来可选优化层，但不应成为文章正确�
 
 如果未来启用动态转换：
 
+- 必须先修改本规范；
 - 只允许固定 preset；
 - 禁止任意 width query 造成无限 unique transformations；
-- 优先 2 档；
-- 必须保留 fallback。
+- 必须保留静态 fallback。
 
 ## 9. 页面流量预算
 
@@ -206,20 +209,21 @@ Cloudflare Images 可作为未来可选优化层，但不应成为文章正确�
 
 必须：
 
-- 正文图片默认 `loading="lazy"`；
+- 正文非首屏图片默认 `loading="lazy"`；
 - 非关键图片避免 preload/prefetch；
-- 使用 responsive images；
+- 图片容器使用响应式 CSS，例如 `max-width: 100%` 和正确的高度处理；
 - 首页/列表只展示必要封面，不提前加载文章内全部图片；
-- 正文内容宽度应有上限，避免为了超宽布局下载超大图；
-- 图片 `width` / `height` 或 aspect ratio 应可确定，减少布局抖动；
-- 浏览器优先加载适合视口的 640 或 1280 版本；
-- 原始大图不得因为点击正文就自动下载。
+- 正文内容宽度应有上限，避免超宽布局；
+- 图片 `width` / `height` 或 aspect ratio 应尽量可确定，减少布局抖动；
+- 原始大图不得因为点击正文就自动下载；
+- 默认没有多尺寸 `srcset` 要求，因为当前只有一个 1280w WebP 发布规格。
 
 对于几十至上百张图片的长文章：
 
 - 所有非首屏图片保持 lazy；
 - 图集可考虑分组、折叠或按交互继续加载；
-- 不应因为文章包含 100 张图片就默认在首次打开时请求 100 张。
+- 不应因为文章包含 100 张图片就默认在首次打开时请求 100 张；
+- 首页、相关推荐、RSS 等位置不得偷偷预取整篇图片集合。
 
 ## 10. 发布时压缩
 
@@ -231,6 +235,8 @@ Cloudflare Images 可作为未来可选优化层，但不应成为文章正确�
 - 文件显著小于原图；
 - 对普通照片优先 WebP；
 - 以真实页面效果和字节数验证。
+
+自动化实现可以提供一个合理默认 quality，例如 80，并允许环境变量覆盖，但 quality 不是不可调整的产品规则。
 
 若后续建立自动化，可以为文件大小设置软预算并报告异常大图，但不要为了硬性 KB 限制造成明显画质损坏。
 
@@ -247,6 +253,15 @@ R2 的优势之一是公网 egress 不单独收费，但仍有存储和请求操
 - 不让高频 Obsidian 同步无必要地和公开媒体访问混在同一个逻辑路径；
 - 未来高频私人同步可迁往自有 VPS S3，以进一步降低 R2 operation 的不确定性。
 
+### 私人 bucket 安全边界
+
+如果当前 `blog/` 与私人 Obsidian/Remotely Save 对象处于同一个 R2 bucket：
+
+- 不得为了公开 `blog/` 而直接把整个 bucket 公开；
+- 应优先通过只允许 `blog/` 前缀的 Worker/网关提供公网访问；
+- 或迁移到独立的公开 blog media bucket；
+- 在该边界未确认安全前，自动化不得把“能上传”视为“可以公开”。
+
 ## 12. 缓存与文件命名
 
 发布媒体应使用稳定、可长期缓存的 key。
@@ -254,31 +269,62 @@ R2 的优势之一是公网 egress 不单独收费，但仍有存储和请求操
 推荐：
 
 ```text
-blog/<year>/<article-or-asset-id>/<asset-id>-640.webp
-blog/<year>/<article-or-asset-id>/<asset-id>-1280.webp
+blog/<year>/<article-or-asset-id>/<content-hash>-1280.webp
 ```
 
 如果文件内容变化，优先产生新 key，而不是覆盖后依赖频繁 purge。
 
 适合的公开静态衍生文件可使用长期 cache / immutable 策略。
 
+不使用原始 `attachments/IMG_1234.jpg` 路径作为长期公开 key。
+
 ## 13. 媒体注册与 asset id
 
 长期目标是为每个发布媒体分配稳定 `asset_id`，记录：
 
-- canonical source；
-- 发布衍生 key；
+- 公开衍生 key；
 - 类型；
-- 尺寸；
+- 实际尺寸；
 - caption/alt；
-- 来源时间与地点（仅内部需要时）；
 - provider / backend。
+
+公开仓库中的 registry 不应包含私人 canonical source 的绝对路径、GPS、账号或秘密。
+
+私人 source -> public asset 的映射如果需要持久保存，应放在私人工作区或安全本地状态中。
 
 文章层不应依赖私人真实路径。
 
 在 registry/resolver 尚未实现前，不要伪造一个不存在的 `asset://` 功能；继续使用稳定的自有域名 URL，并在实现 resolver 后再迁移。
 
-## 14. 视频
+## 14. Draft 中的图片与发布图片
+
+Draft 阶段应优先保留适合 Obsidian 本地阅读的图片引用，例如：
+
+```md
+![[attachments/IMG_1234.jpg]]
+```
+
+或者普通本地 Markdown 图片引用。
+
+不要求 AI 在 draft 阶段就把私人图片上传到公网。
+
+发布阶段才执行：
+
+```text
+Obsidian local reference
+      ↓
+resolve source file
+      ↓
+1280w WebP
+      ↓
+R2 blog/
+      ↓
+public URL in generated site copy
+```
+
+Obsidian 原稿可以继续保留本地引用，公开副本使用公网 URL。
+
+## 15. 视频
 
 ### 长视频
 
@@ -304,7 +350,7 @@ blog/<year>/<article-or-asset-id>/<asset-id>-1280.webp
 
 4K、大体积、长时长视频不应直接作为普通静态文件塞进文章页面。
 
-## 15. 供应商退出
+## 16. 供应商退出
 
 如果图库/CDN/视频平台停止服务：
 
