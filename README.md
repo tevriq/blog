@@ -37,6 +37,10 @@ Before working on publishing, AI directives, or media, read:
 - `docs/PUBLISHING_POLICY.md`
 - `docs/MEDIA_POLICY.md`
 
+For local implementation work, also read:
+
+- `docs/LOCAL_AI_IMPLEMENTATION.md`
+
 ## Obsidian Workflow
 
 Current local source root:
@@ -106,14 +110,17 @@ Original/source media remains under user control.
 
 For public blog media, an R2 `blog/` prefix has been created specifically for publishing derivatives.
 
-Default image policy:
+Default photo policy:
 
-- generate WebP at publish time;
-- default to two widths: `640w` and `1280w`;
-- serve responsive images with lazy loading;
+- generate a single WebP derivative at publish time;
+- maximum width: `1280w`;
+- never upscale a source image that is smaller than 1280px wide;
+- do not generate `640w` or other responsive width variants by default;
+- serve body images with lazy loading and responsive CSS sizing;
 - do not expose Remotely Save internal paths as permanent public URLs;
 - prefer a user-controlled media domain over provider-specific URLs;
-- do not depend on Cloudflare Images dynamic transformations by default.
+- do not depend on Cloudflare Images dynamic transformations by default;
+- if the same R2 bucket also contains private Obsidian/Remotely Save data, never expose the whole bucket just to publish `blog/`.
 
 Long-form video should normally use YouTube or another replaceable video platform while originals remain under user control.
 
