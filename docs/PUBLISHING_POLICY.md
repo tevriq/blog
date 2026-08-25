@@ -51,13 +51,16 @@
 - [ ] 所有计划公开的图片均有发布衍生文件
 - [ ] 媒体位于 R2 `blog/` 发布前缀或其他明确的公开媒体层
 - [ ] 原始 Remotely Save 路径未被直接当成长期公开 URL
-- [ ] 图片默认有 `640w` / `1280w` WebP，或有明确例外
+- [ ] 照片类图片默认只有一个最大宽度 `1280w` 的 WebP 发布衍生文件，原图不足 1280px 时不放大，或有明确例外
+- [ ] 默认未额外生成 `640w`/其他多尺寸版本
 - [ ] 图片引用可解析
 - [ ] 失败上传、404、临时链接不得发布
+- [ ] 若 `blog/` 与私人 Obsidian/Remotely Save 数据处于同一 R2 bucket，公开访问不得暴露整个 bucket
 - [ ] 长视频使用稳定的外部视频发布层或明确批准的自托管方案
 
 ### 构建
 
+- [ ] `validate:ai` 能成功（实现后为强制项）
 - [ ] import 能成功
 - [ ] validation 能成功
 - [ ] Astro build 能成功
@@ -87,10 +90,14 @@ import:obsidian
   ↓
 tag
   ↓
+validate:ai
+  ↓
 validate
   ↓
 build
 ```
+
+在 `validate:ai` 尚未实现前，发布者必须人工完成等价检查；实现后应纳入标准发布准备链。
 
 `src/content/entries/` 是派生物。
 
