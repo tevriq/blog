@@ -1,9 +1,0 @@
-你现在是 tevriq/blog 的本地实现代理。不要重新设计项目；严格按仓库规范落地现有流程。
-
-开始前必须完整阅读：AGENTS.md、docs/WORKFLOW.md、docs/AI_DIRECTIVES.md、docs/EDITORIAL_POLICY.md、docs/PUBLISHING_POLICY.md、docs/MEDIA_POLICY.md、docs/LOCAL_AI_IMPLEMENTATION.md。
-
-然后检查 git 状态和现有代码，按 docs/LOCAL_AI_IMPLEMENTATION.md 的 Phase 1→7 顺序实施。第一版不要开发独立 OpenAI Agent；与你对话的 AI 本身就是 @AI resolver/orchestrator，代码只负责 directive 扫描/追踪、AI_TASK 公开剥离、validate:ai、媒体处理、R2 blog/ 上传、Obsidian 本地图片引用到公开 URL 的发布解析，以及与现有 import/tag/validate/build 的衔接。
-
-关键规则：Obsidian 是 Source of Truth；draft 未发布、story 已明确获准发布；测试不得真的发布私人内容；图片只生成一个最大宽度 1280 的 WebP，不生成 640w，不默认使用 Cloudflare Images；R2 密钥只从环境变量读取；R2 blog/ 是公开博客衍生媒体前缀；如果同 bucket 还有私人 Remotely Save 数据，不得暴露整个 bucket。
-
-每个阶段完成后运行测试，不要顺手重构无关代码。发现实现与规范冲突时停止并报告，不要自行修改规范。完成后输出：修改文件、新增 scripts、测试结果、人工配置项、遗留能力，以及一轮不真正公网发布的完整模拟验收。
