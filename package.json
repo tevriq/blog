@@ -13,11 +13,18 @@
     "sync:x": "node scripts/sync-x-posts.mjs",
     "tag": "node scripts/ai-tagger.mjs",
     "validate": "node scripts/validate-content.mjs",
-    "publish:local": "npm run import:obsidian && npm run tag && npm run validate && npm run build -- --force"
+    "validate:ai": "node scripts/validate-ai-directives.mjs",
+    "media:publish": "node scripts/publish-media.mjs",
+    "media:resolve": "node scripts/resolve-obsidian-images.mjs",
+    "preflight:local": "node scripts/preflight-publish.mjs",
+    "test": "node --test",
+    "publish:local": "npm run import:obsidian && npm run tag && npm run validate:ai && npm run validate && npm run build -- --force"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1116.0",
     "astro": "^7.0.6",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@emnapi/core": "^1.11.2",

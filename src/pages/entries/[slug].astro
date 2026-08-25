@@ -69,3 +69,9 @@ const articleJsonLd = {
     </aside>
   </main>
 </BaseLayout>
+<script is:inline>
+  document.querySelectorAll(".prose img").forEach((image) => {
+    image.loading = "lazy";
+    image.decoding = "async";
+  });
+</script>

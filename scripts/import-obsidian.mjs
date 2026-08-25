@@ -18,6 +18,7 @@ import {
   slugify,
   uniq
 } from "./obsidian-metadata.mjs";
+import { stripAiTaskMarkers } from "./ai-directives.mjs";
 
 const sourceRoot = process.env.OBSIDIAN_STORY_DIR ?? process.env.OBSIDIAN_BLOG_DIR ?? defaultStoryRoot;
 const targetRoot = fileURLToPath(new URL("../src/content/entries", import.meta.url));
@@ -99,7 +100,7 @@ for (const sourceFile of sourceFiles) {
     continue;
   }
 
-  const content = normalizeObsidianMarkdown(parsed.content);
+  const content = stripAiTaskMarkers(normalizeObsidianMarkdown(parsed.content));
   const title = parsed.data.title ?? path.basename(sourceFile.filename, path.extname(sourceFile.filename));
   const stats = await fs.stat(sourceFile.fullPath);
   const sourcePath = path.relative(sourceRoot, sourceFile.fullPath);

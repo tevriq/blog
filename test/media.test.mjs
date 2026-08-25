@@ -1,0 +1,20 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import sharp from "sharp";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+const run = promisify(execFile);
+test("media dry-run creates one non-upscaled 1280w WebP without credentials", async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "blog-media-"));
+  const file = path.join(dir, "small.png");
+  await sharp({ create: { width: 320, height: 180, channels: 4, background: { r: 20, g: 40, b: 60, alpha: 1 } } }).png().withMetadata({ exif: { IFD0: { GPSInfo: "private" } } }).toFile(file);
+  const { stdout } = await run(process.execPath, ["scripts/publish-media.mjs", "--file", file, "--article", "fixture", "--dry-run"], { env: { ...process.env, R2_PUBLIC_BASE_URL: "https://pic.example" } });
+  const result = JSON.parse(stdout);
+  assert.equal(result.output.width, 320);
+  assert.equal(result.output.mime, "image/webp");
+  assert.match(result.key, /^blog\/\d{4}\/fixture\/[a-f0-9]{16}-1280\.webp$/);
+  assert.equal(result.dryRun, true);
+});
