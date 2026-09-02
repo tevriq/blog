@@ -2,7 +2,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { collectTags, entryCoverImage, entryDefaultCoverImage, entryLocation, entrySlug, formatDate, getPublishedEntries, typeLabels } from "../lib/entries";
 import { getLatestXPosts } from "../lib/x-posts";
-import "../lib/this-module-does-not-exist";
 
 const entries = await getPublishedEntries();
 const tags = collectTags(entries).slice(0, 14);
