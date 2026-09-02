@@ -22,6 +22,7 @@ function formatXDate(date?: string) {
 
 <BaseLayout>
   <main>
+    <div class="pipeline-test" role="status">Vercel Pipeline Test</div>
     <section class="hero">
       <div class="hero-copy">
         <h1>東嬉遊記</h1>
@@ -106,3 +107,18 @@ function formatXDate(date?: string) {
     });
   </script>
 </BaseLayout>
+
+<style>
+  .pipeline-test {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1000;
+    padding: 8px 12px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: Canvas;
+    color: CanvasText;
+    font: 600 12px/1.2 system-ui, sans-serif;
+  }
+</style>
