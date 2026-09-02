@@ -22,7 +22,6 @@ function formatXDate(date?: string) {
 
 <BaseLayout>
   <main>
-    <div class="pipeline-test" role="status">Vercel Pipeline Test</div>
     <section class="hero">
       <div class="hero-copy">
         <h1>東嬉遊記</h1>
@@ -50,7 +49,7 @@ function formatXDate(date?: string) {
                     <span>·</span>
                     <time datetime={post.createdAt}>{formatXDate(post.createdAt)}</time>
                   </span>
-                <p>{post.text}</p>
+                  <p>{post.text}</p>
                 </span>
               </a>
             ))}
@@ -60,26 +59,45 @@ function formatXDate(date?: string) {
     </section>
 
     <section id="records" class="content-band">
-      <div class="section-heading">
+      <div class="section-heading records-heading">
         <h2>全部记录</h2>
+        <label class="entry-search">
+          <span class="sr-only">搜索记录</span>
+          <input type="search" placeholder="搜索标题、摘要或地点" autocomplete="off" data-entry-search />
+        </label>
       </div>
       <div class="entry-grid">
-        {entries.map((entry, index) => (
-          <article class={index >= visibleEntryLimit ? "entry-card is-extra" : "entry-card"} data-extra={index >= visibleEntryLimit ? "true" : undefined} hidden={index >= visibleEntryLimit}>
-            <a href={`/entries/${entrySlug(entry)}`}>
-              <span class="entry-cover">
-                <img src={entryCoverImage(entry, index)} data-fallback-src={entryDefaultCoverImage(index)} alt="" loading="lazy" />
-              </span>
-              <span class="entry-meta">{typeLabels[entry.data.type]} · {formatDate(entry.data.date)}</span>
-              <h3>{entry.data.title}</h3>
-              <p>{entry.data.summary}</p>
-              <span class="entry-place">{entryLocation(entry) || entry.data.country}</span>
-            </a>
-          </article>
-        ))}
+        {entries.map((entry, index) => {
+          const location = entryLocation(entry) || entry.data.country;
+          const searchableText = [entry.data.title, entry.data.summary, location, typeLabels[entry.data.type]]
+            .filter(Boolean)
+            .join(" ")
+            .toLocaleLowerCase("zh-CN");
+
+          return (
+            <article
+              class={index >= visibleEntryLimit ? "entry-card is-extra" : "entry-card"}
+              data-entry-card
+              data-search={searchableText}
+              data-extra={index >= visibleEntryLimit ? "true" : undefined}
+              hidden={index >= visibleEntryLimit}
+            >
+              <a href={`/entries/${entrySlug(entry)}`}>
+                <span class="entry-cover">
+                  <img src={entryCoverImage(entry, index)} data-fallback-src={entryDefaultCoverImage(index)} alt="" loading="lazy" />
+                </span>
+                <span class="entry-meta">{typeLabels[entry.data.type]} · {formatDate(entry.data.date)}</span>
+                <h3>{entry.data.title}</h3>
+                <p>{entry.data.summary}</p>
+                <span class="entry-place">{location}</span>
+              </a>
+            </article>
+          );
+        })}
       </div>
+      <p class="search-empty" data-search-empty hidden>没有找到匹配的记录。</p>
       {hasMoreEntries && (
-        <div class="more-row">
+        <div class="more-row" data-more-row>
           <button class="more-button" type="button" data-show-more>更多</button>
         </div>
       )}
@@ -98,27 +116,99 @@ function formatXDate(date?: string) {
     </section>
   </main>
   <script is:inline>
+    const searchInput = document.querySelector("[data-entry-search]");
+    const entryCards = Array.from(document.querySelectorAll("[data-entry-card]"));
+    const searchEmpty = document.querySelector("[data-search-empty]");
     const showMoreButton = document.querySelector("[data-show-more]");
-    showMoreButton?.addEventListener("click", () => {
-      document.querySelectorAll('[data-extra="true"]').forEach((entry) => {
-        entry.hidden = false;
+    const moreRow = document.querySelector("[data-more-row]");
+    let expanded = false;
+
+    const restoreDefaultVisibility = () => {
+      entryCards.forEach((entry) => {
+        entry.hidden = !expanded && entry.dataset.extra === "true";
       });
-      showMoreButton.hidden = true;
+      if (moreRow) moreRow.hidden = expanded;
+      if (searchEmpty) searchEmpty.hidden = true;
+    };
+
+    searchInput?.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLocaleLowerCase("zh-CN");
+      if (!query) {
+        restoreDefaultVisibility();
+        return;
+      }
+
+      let matchCount = 0;
+      entryCards.forEach((entry) => {
+        const matches = (entry.dataset.search || "").includes(query);
+        entry.hidden = !matches;
+        if (matches) matchCount += 1;
+      });
+
+      if (moreRow) moreRow.hidden = true;
+      if (searchEmpty) searchEmpty.hidden = matchCount > 0;
+    });
+
+    showMoreButton?.addEventListener("click", () => {
+      expanded = true;
+      restoreDefaultVisibility();
     });
   </script>
 </BaseLayout>
 
 <style>
-  .pipeline-test {
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    z-index: 1000;
-    padding: 8px 12px;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    background: Canvas;
-    color: CanvasText;
-    font: 600 12px/1.2 system-ui, sans-serif;
+  .records-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .entry-search {
+    width: min(360px, 100%);
+  }
+
+  .entry-search input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  .entry-search input:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .search-empty {
+    margin: 22px 0 0;
+    opacity: 0.65;
+  }
+
+  @media (max-width: 640px) {
+    .records-heading {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .entry-search {
+      width: 100%;
+    }
   }
 </style>
